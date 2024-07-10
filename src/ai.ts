@@ -1,30 +1,15 @@
-import {ChatAnthropic} from '@langchain/anthropic'
+import {BaseMessage} from '@langchain/core/messages'
 import {StringOutputParser} from '@langchain/core/output_parsers'
 import {ChatPromptTemplate, MessagesPlaceholder} from '@langchain/core/prompts'
 import {RunnablePassthrough, RunnableSequence} from '@langchain/core/runnables'
-import 'cheerio'
+import {ChatOpenAI} from '@langchain/openai'
 import 'dotenv/config'
 import {formatDocumentsAsString} from 'langchain/util/document'
 import {loadDocs} from './lib/chroma-store.js'
-import {ChatOpenAI} from '@langchain/openai'
-import {HumanMessage} from '@langchain/core/messages'
 
-class ChatHistory {
-  constructor() {
-    this.messages = []
-  }
-
-  addMessage(message) {
-    this.messages.push(message)
-  }
-
-  getHistory() {
-    return this.messages
-  }
-
-  clear() {
-    this.messages = []
-  }
+type Input = {
+  chat_history: BaseMessage[]
+  question: string
 }
 
 const vectorStore = await loadDocs()
@@ -66,65 +51,21 @@ const qaPrompt = ChatPromptTemplate.fromMessages([
   ['human', '{question}']
 ])
 
-const contextualizedQuestion = (input: Record<string, unknown>) => {
-  if (
-    'chat_history' in input &&
-    Array.isArray(input.chat_history) &&
-    input.chat_history.length > 0
-  ) {
-    return contextualizeQChain //.invoke(input)
-  }
-  return input.question as string
-}
-
 const retriever = vectorStore.asRetriever({k: 12, searchType: 'similarity'})
 
-const ragChain = RunnableSequence.from([
+export const ragChain = RunnableSequence.from([
   RunnablePassthrough.assign({
-    context: async (input: Record<string, unknown>) => {
+    context: async (input: Input) => {
       if (
         'chat_history' in input &&
         Array.isArray(input.chat_history) &&
         input.chat_history.length > 0
       ) {
-        const chain = contextualizedQuestion(input)
-        return chain.pipe(retriever).pipe(formatDocumentsAsString)
+        return contextualizeQChain.pipe(retriever).pipe(formatDocumentsAsString)
       }
       return retriever.invoke(input.question).then(formatDocumentsAsString)
-      // return '' //retriever.pipe(formatDocumentsAsString)
     }
   }),
   qaPrompt,
   llm
 ])
-
-async function chat() {
-  const chatHistory = new ChatHistory()
-  while (true) {
-    const question = await askQuestion('You: ')
-    if (question.toLowerCase() === 'exit') {
-      console.log('Goodbye!')
-      break
-    }
-
-    const aiMsg = await ragChain.invoke({
-      question,
-      chat_history: chatHistory.getHistory()
-    })
-
-    chatHistory.addMessage(new HumanMessage(question))
-    chatHistory.addMessage(aiMsg)
-    console.log('AI:', aiMsg.content)
-  }
-}
-
-function askQuestion(prompt) {
-  return new Promise(resolve => {
-    process.stdout.write(prompt)
-    process.stdin.once('data', data => {
-      resolve(data.toString().trim())
-    })
-  })
-}
-
-chat()
