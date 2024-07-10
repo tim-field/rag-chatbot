@@ -90,7 +90,8 @@ const ragChain = RunnableSequence.from([
         const chain = contextualizedQuestion(input)
         return chain.pipe(retriever).pipe(formatDocumentsAsString)
       }
-      return '' //retriever.pipe(formatDocumentsAsString)
+      return retriever.invoke(input.question).then(formatDocumentsAsString)
+      // return '' //retriever.pipe(formatDocumentsAsString)
     }
   }),
   qaPrompt,
