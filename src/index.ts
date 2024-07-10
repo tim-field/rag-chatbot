@@ -6,13 +6,17 @@ import 'cheerio'
 import 'dotenv/config'
 import {formatDocumentsAsString} from 'langchain/util/document'
 import {loadDocs} from './lib/chroma-store.js'
+import {ChatOpenAI} from '@langchain/openai'
 
 const vectorStore = await loadDocs()
-const llm = new ChatAnthropic({
-  temperature: 0,
-  model: 'claude-3-5-sonnet-20240620',
-  apiKey: process.env.ANTHROPIC_API_KEY,
-  maxTokens: 1024
+// const llm = new ChatAnthropic({
+//   temperature: 0,
+//   model: 'claude-3-5-sonnet-20240620',
+//   apiKey: process.env.ANTHROPIC_API_KEY,
+//   maxTokens: 1024
+// })
+const llm = new ChatOpenAI({
+  model: 'gpt-4o'
 })
 
 const contextualizeQSystemPrompt = `Given a chat history and the latest user question
@@ -25,6 +29,7 @@ const contextualizeQPrompt = ChatPromptTemplate.fromMessages([
   new MessagesPlaceholder('chat_history'),
   ['human', '{question}']
 ])
+
 const contextualizeQChain = contextualizeQPrompt
   .pipe(llm)
   .pipe(new StringOutputParser())
@@ -38,8 +43,8 @@ Use three sentences maximum and keep the answer concise.
 
 const qaPrompt = ChatPromptTemplate.fromMessages([
   ['system', qaSystemPrompt],
-  ['human', '{question}'],
-  new MessagesPlaceholder('chat_history')
+  new MessagesPlaceholder('chat_history'),
+  ['human', '{question}']
 ])
 
 const contextualizedQuestion = (input: Record<string, unknown>) => {
