@@ -7,6 +7,25 @@ import 'dotenv/config'
 import {formatDocumentsAsString} from 'langchain/util/document'
 import {loadDocs} from './lib/chroma-store.js'
 import {ChatOpenAI} from '@langchain/openai'
+import {HumanMessage} from '@langchain/core/messages'
+
+class ChatHistory {
+  constructor() {
+    this.messages = []
+  }
+
+  addMessage(message) {
+    this.messages.push(message)
+  }
+
+  getHistory() {
+    return this.messages
+  }
+
+  clear() {
+    this.messages = []
+  }
+}
 
 const vectorStore = await loadDocs()
 // const llm = new ChatAnthropic({
@@ -78,17 +97,33 @@ const ragChain = RunnableSequence.from([
   llm
 ])
 
-const chat_history = []
+async function chat() {
+  const chatHistory = new ChatHistory()
+  while (true) {
+    const question = await askQuestion('You: ')
+    if (question.toLowerCase() === 'exit') {
+      console.log('Goodbye!')
+      break
+    }
 
-const question = "What's a use case for multiple streams?"
-const aiMsg = await ragChain.invoke({question, chat_history})
+    const aiMsg = await ragChain.invoke({
+      question,
+      chat_history: chatHistory.getHistory()
+    })
 
-console.log(aiMsg.content)
+    chatHistory.addMessage(new HumanMessage(question))
+    chatHistory.addMessage(aiMsg)
+    console.log('AI:', aiMsg.content)
+  }
+}
 
-chat_history.push(aiMsg.content)
-// chat_history.push({role: 'assistant', content: aiMsg.content})
+function askQuestion(prompt) {
+  return new Promise(resolve => {
+    process.stdout.write(prompt)
+    process.stdin.once('data', data => {
+      resolve(data.toString().trim())
+    })
+  })
+}
 
-const secondQuestion = 'How do I set one up?'
-const aiMsg2 = await ragChain.invoke({question: secondQuestion, chat_history})
-
-console.log(aiMsg2.content)
+chat()
