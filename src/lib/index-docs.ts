@@ -2,7 +2,7 @@ import {UnstructuredLoader} from '@langchain/community/document_loaders/fs/unstr
 import 'dotenv/config'
 import {DirectoryLoader} from 'langchain/document_loaders/fs/directory'
 
-export const indexDocs = (markdownPath = '../documentation/docs/') => {
+export const indexDocs = (markdownPath: string) => {
   // Load all markdown files in the given directory
   const loader = new DirectoryLoader(markdownPath, {
     '.md': path => {
