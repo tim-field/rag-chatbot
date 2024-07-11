@@ -1,5 +1,5 @@
 import {WebSocket, WebSocketServer} from 'ws'
-import {ragChain} from './ai.js' // import necessary functions and classes
+import {ragChain} from './ai.js'
 import {ChatHistory} from './chat.js'
 import {HumanMessage} from '@langchain/core/messages'
 

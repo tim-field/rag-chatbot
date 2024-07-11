@@ -3,7 +3,7 @@ import {Chroma} from '@langchain/community/vectorstores/chroma'
 import {Document} from '@langchain/core/documents'
 import {RecursiveCharacterTextSplitter} from 'langchain/text_splitter'
 
-const collectionName = 'atomic_docs'
+const collectionName = process.env.COLLECTION_NAME
 const url = process.env.CHROMA_URL
 
 export const storeDocs = async (documents: Document[]) => {
