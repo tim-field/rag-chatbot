@@ -17,5 +17,10 @@
     "@types/ws": "^8.5.10",
     "dotenv": "^16.4.5",
     "esrun": "^3.2.26"
+  },
+  "scripts": {
+    "import": "esrun src/scripts/import.ts",
+    "cli": "esrun src/cli.ts",
+    "server": "esrun src/server.ts"
   }
 }
