@@ -6,19 +6,23 @@ import {RecursiveCharacterTextSplitter} from 'langchain/text_splitter'
 const collectionName = process.env.COLLECTION_NAME
 const url = process.env.CHROMA_URL
 
-console.log('collectionName', collectionName)
-
 export const storeDocs = async (documents: Document[]) => {
+  //  Split the Document into chunks for embedding and vector storage.
   const textSplitter = RecursiveCharacterTextSplitter.fromLanguage('markdown', {
     chunkSize: 1000,
     chunkOverlap: 200
   })
   const splits = await textSplitter.splitDocuments(documents)
   // Initialize Chroma (this will persist the data)
-  await Chroma.fromDocuments(splits, new CohereEmbeddings(), {
-    collectionName,
-    url
-  })
+  await Chroma.fromDocuments(
+    splits,
+    // Embedding models create a vector representation of a piece of text.
+    new CohereEmbeddings(),
+    {
+      collectionName,
+      url
+    }
+  )
 }
 
 export const loadDocs = async () => {
