@@ -6,8 +6,10 @@ import {RecursiveCharacterTextSplitter} from 'langchain/text_splitter'
 const collectionName = process.env.COLLECTION_NAME
 const url = process.env.CHROMA_URL
 
+console.log('collectionName', collectionName)
+
 export const storeDocs = async (documents: Document[]) => {
-  const textSplitter = new RecursiveCharacterTextSplitter({
+  const textSplitter = RecursiveCharacterTextSplitter.fromLanguage('markdown', {
     chunkSize: 1000,
     chunkOverlap: 200
   })
