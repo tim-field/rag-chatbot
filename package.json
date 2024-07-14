@@ -1,5 +1,6 @@
 {
   "type": "module",
+  "license": "MIT",
   "dependencies": {
     "@langchain/anthropic": "^0.2.3",
     "@langchain/cohere": "^0.1.0",

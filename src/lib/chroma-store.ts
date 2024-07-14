@@ -17,6 +17,7 @@ export const storeDocs = async (documents: Document[]) => {
   await Chroma.fromDocuments(
     splits,
     // Embedding models create a vector representation of a piece of text.
+    // https://js.langchain.com/v0.2/docs/concepts#embedding-models
     new CohereEmbeddings(),
     {
       collectionName,
